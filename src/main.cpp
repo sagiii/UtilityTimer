@@ -1,5 +1,7 @@
 #include <M5StickCPlus.h>
+// 背景画像を使う際は、 https://lang-ship.com/tools/image2data/ でヘッダファイルにして以下2行をコメントイン
 #include "image.h"
+#define USE_BACKGROUND_IMAGE
 
 // タイマーの状態
 enum TimerState {
@@ -118,6 +120,7 @@ void drawTime(long seconds) {
     sprintf(timeStr, "%02d:%02d", minutes, secs);
     // 画面全体をクリアしてから描画することでちらつきを抑える
     M5.Lcd.fillScreen(BLACK);
+    M5.Lcd.setTextSize(1);
     M5.Lcd.setTextFont(TIME_FONT_ID); // 時間表示用フォントを設定
     M5.Lcd.setTextColor(WHITE, BLACK);
     M5.Lcd.drawString(timeStr, M5.Lcd.width() / 2, M5.Lcd.height() / 2);
@@ -164,9 +167,11 @@ void clearTimer() {
 // 背景画像を描画する関数
 void drawBackground() {
     M5.Lcd.fillScreen(BLACK);
+#ifdef USE_BACKGROUND_IMAGE
     M5.Lcd.startWrite();
     M5.Lcd.pushImage(0, 0, imgWidth, imgHeight, img);
     M5.Lcd.endWrite();
+#endif
 }
 
 // 全ての画面表示を管理する関数 (必要な時にだけ呼び出す)
@@ -174,8 +179,9 @@ void updateDisplay() {
     switch (currentState) {
         case IDLE:
             drawBackground();
+            M5.Lcd.setTextSize(2);
             M5.Lcd.setTextFont(TEXT_FONT_ID); // テキスト用フォントを設定
-            M5.Lcd.setTextColor(GREEN, BLACK);
+            M5.Lcd.setTextColor(GREEN);//, BLACK);
             M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
             break;
         case COUNTING:
@@ -186,6 +192,7 @@ void updateDisplay() {
         case FINISHED:
             M5.Lcd.fillScreen(BLACK); // 画面を一度クリア
             M5.Lcd.fillScreen(RED); // 派手な画面
+            M5.Lcd.setTextSize(2);
             M5.Lcd.setTextFont(TEXT_FONT_ID); // テキスト用フォントを設定
             M5.Lcd.setTextColor(BLACK, RED);
             M5.Lcd.drawString("TIME UP!", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
