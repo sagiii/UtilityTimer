@@ -42,6 +42,7 @@ void playMelodyTick(); // メロディを少しずつ再生する関数
 void stopMelody();
 void clearTimer();
 void updateDisplay();
+void drawBackground(); // 背景描画用の関数
 
 void setup() {
     M5.begin();
@@ -50,21 +51,23 @@ void setup() {
     clearTimer(); // 初期表示
 }
 
-// 背景画像を描画する関数
-void drawBackground() {
-    M5.Lcd.startWrite();
-    M5.Lcd.pushImage(0, 0, imgWidth, imgHeight, img);
-    M5.Lcd.endWrite();
-}
-
 void loop() {
     M5.update(); // ボタンの状態を更新
 
-    // 表のボタン (BtnA) の処理
-    if (M5.BtnA.wasPressed()) {
+    bool isPowerButtonPressed = M5.Axp.GetBtnPress() == 0x02;
+    bool isButtonAPressed = M5.BtnA.wasPressed();
+
+    // 電源ボタン（PMU経由）と表のボタン (BtnA) の処理
+    if (isPowerButtonPressed || isButtonAPressed) {
         if (currentState == IDLE) {
-            // 60分 (3600秒) からカウントダウン開始
-            totalSeconds = 60 * 60;
+            if (isPowerButtonPressed) {
+                // 10秒からカウントダウン開始
+                totalSeconds = 10;
+            }
+            if (isButtonAPressed) {
+                // 60分 (3600秒) からカウントダウン開始
+                totalSeconds = 60 * 60;
+            }
             remainingSeconds = totalSeconds;
             currentState = COUNTING;
             lastUpdateTime = millis(); // カウント開始時刻を記録
@@ -156,6 +159,14 @@ void clearTimer() {
     remainingSeconds = 0;
     stopMelody();
     updateDisplay(); // 画面更新
+}
+
+// 背景画像を描画する関数
+void drawBackground() {
+    M5.Lcd.fillScreen(BLACK);
+    M5.Lcd.startWrite();
+    M5.Lcd.pushImage(0, 0, imgWidth, imgHeight, img);
+    M5.Lcd.endWrite();
 }
 
 // 全ての画面表示を管理する関数 (必要な時にだけ呼び出す)
