@@ -1,4 +1,5 @@
 #include <M5StickCPlus.h>
+#include "image.h"
 
 // タイマーの状態
 enum TimerState {
@@ -47,6 +48,13 @@ void setup() {
     M5.Lcd.setRotation(1); // 画面を横向きに設定 (TypeCコネクタが右の場合)
     M5.Lcd.setTextDatum(MC_DATUM); // 中央揃え
     clearTimer(); // 初期表示
+}
+
+// 背景画像を描画する関数
+void drawBackground() {
+    M5.Lcd.startWrite();
+    M5.Lcd.pushImage(0, 0, imgWidth, imgHeight, img);
+    M5.Lcd.endWrite();
 }
 
 void loop() {
@@ -152,19 +160,20 @@ void clearTimer() {
 
 // 全ての画面表示を管理する関数 (必要な時にだけ呼び出す)
 void updateDisplay() {
-    M5.Lcd.fillScreen(BLACK); // 画面を一度クリア
-
     switch (currentState) {
         case IDLE:
+            drawBackground();
             M5.Lcd.setTextFont(TEXT_FONT_ID); // テキスト用フォントを設定
             M5.Lcd.setTextColor(GREEN, BLACK);
             M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
             break;
         case COUNTING:
         case PAUSED:
+            M5.Lcd.fillScreen(BLACK); // 画面を一度クリア
             drawTime(remainingSeconds); // drawTime関数内でフォントを設定
             break;
         case FINISHED:
+            M5.Lcd.fillScreen(BLACK); // 画面を一度クリア
             M5.Lcd.fillScreen(RED); // 派手な画面
             M5.Lcd.setTextFont(TEXT_FONT_ID); // テキスト用フォントを設定
             M5.Lcd.setTextColor(BLACK, RED);
