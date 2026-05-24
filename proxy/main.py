@@ -114,11 +114,26 @@ def get_image(request):
     except Exception as e:
         return f"image download failed: {img_url} / {e}", 502
 
+    # マージン内にアスペクト比を保って収め、黒背景の中央に配置
+    MARGIN = 15
+    MAX_W = TARGET_W - MARGIN * 2  # 210
+    MAX_H = TARGET_H - MARGIN * 2  # 103
     try:
         img = Image.open(io.BytesIO(img_data)).convert("RGBA")
         bg = Image.new("RGB", img.size, (0, 0, 0))
         bg.paste(img, mask=img.split()[3])
-        img = bg.resize((TARGET_W, TARGET_H), Image.LANCZOS)
+        src = bg
+
+        scale = min(MAX_W / src.width, MAX_H / src.height)
+        new_w = max(1, int(src.width  * scale))
+        new_h = max(1, int(src.height * scale))
+        src = src.resize((new_w, new_h), Image.LANCZOS)
+
+        canvas = Image.new("RGB", (TARGET_W, TARGET_H), (0, 0, 0))
+        x = (TARGET_W - new_w) // 2
+        y = (TARGET_H - new_h) // 2
+        canvas.paste(src, (x, y))
+        img = canvas
     except Exception as e:
         return f"image processing failed: {e}", 500
 
