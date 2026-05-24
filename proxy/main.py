@@ -125,7 +125,8 @@ def get_image(request):
     out = bytearray()
     for r, g, b in img.getdata():
         val = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-        out += struct.pack("<H", val)
+        # M5Display の pushImage はバイトスワップ済みRGB565を期待する
+        out += struct.pack(">H", val)
 
     return (
         bytes(out),
