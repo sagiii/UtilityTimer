@@ -37,7 +37,11 @@ pio device monitor
 初回起動時（または WiFi 未設定時）はデバイスが **AP モード**に入る。
 
 1. M5 の画面に表示された SSID（例: `M5Timer-Setup`）にスマホ/PCで接続
-2. ブラウザで `http://192.168.4.1` を開く
+2. 設定画面が自動でポップアップ表示される（キャプティブポータル）
+   - iOS/macOS: 「ネットワークにサインイン」が自動表示
+   - Android: 「Wi-Fi ネットワークにサインイン」通知をタップ
+   - Windows: タスクバーの通知をクリック
+   - 自動表示されない場合は `http://192.168.4.1` を手動で開く
 3. 接続したい WiFi の SSID とパスワードを入力して保存
 4. デバイスが自動で再起動し、指定の WiFi に接続される
 5. 接続後は IDLE 画面に `utiltimer.local` と表示される
@@ -55,7 +59,7 @@ pio device monitor
 |----------|------|
 | BtnA タイマー時間 | 10 / 20 / 30 / 45 / 60 / 75 / 90 / 120 分から選択 |
 | 電源ボタン タイマー時間 | 10 / 20 / 30 / 40 / 50 / 60 秒から選択 |
-| 背景画像ソース | 静的（書き込み済み画像）/ Web フェッチ（日替わり）から選択 |
+| 背景画像ソース | 静的（書き込み済み画像）/ Web フェッチ（READY 表示のたびにランダム取得）から選択 |
 | メイントピック | Web フェッチ時の画像カテゴリ（Minecraft など） |
 | サブトピック | カテゴリを絞り込むワード（mob, block など） |
 | READY 文字 | IDLE 画面の文字表示 ON/OFF |
@@ -93,7 +97,7 @@ pio run --target upload
 
 ## プロキシサーバーのセットアップ（Web フェッチ機能を使う場合）
 
-背景画像の日替わり Web フェッチには GCP Cloud Functions が必要。
+背景画像の Web フェッチには GCP Cloud Functions が必要。READY 画面表示のたびにランダムな画像を取得する。
 
 ### 前提
 
@@ -118,7 +122,13 @@ gcloud billing projects link utilitytimer-proxy \
   --billing-account=XXXXXX-XXXXXX-XXXXXX
 
 # 必要な API を有効化
-gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com
+
+# デプロイユーザーに serviceAccountUser ロールを付与（Gen2 が Cloud Run を使うために必要）
+gcloud iam service-accounts add-iam-policy-binding \
+  $(gcloud projects describe $(gcloud config get-value project) --format='value(projectNumber)')-compute@developer.gserviceaccount.com \
+  --member="user:$(gcloud config get-value account)" \
+  --role="roles/iam.serviceAccountUser"
 ```
 
 ### Cloud Functions のデプロイ
@@ -157,7 +167,7 @@ https://<functions-url>?topic=minecraft&sub=mob
 
 | トピック名 | ソース Wiki | サブトピック例 |
 |-----------|------------|--------------|
-| minecraft | minecraft.wiki | mob, block, item, biome |
+| minecraft | minecraft.fandom.com | mob, block, item, biome |
 | pokemon | bulbapedia.bulbagarden.net | gen1, legendary, starter |
 | terraria | terraria.wiki.gg | boss, npc, weapon, armor |
 | stardew | stardewvalleywiki.com | crop, fish, character |
