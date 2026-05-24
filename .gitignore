@@ -3,6 +3,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+.claude/
+private/
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,windows,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,linux,windows,macos
@@ -59,7 +61,6 @@ Temporary Items
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
-!.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
