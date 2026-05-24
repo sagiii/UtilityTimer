@@ -1,4 +1,5 @@
 #include <M5StickCPlus.h>
+#include <qrcode.h>
 // 背景画像を使う際は、 https://lang-ship.com/tools/image2data/ でヘッダファイルにして以下2行をコメントイン
 #include "image.h"
 #define USE_BACKGROUND_IMAGE
@@ -46,11 +47,12 @@ int melodyIndex = 0; // メロディ再生中の現在のインデックス
 
 // 関数プロトタイプ
 void drawTime(long seconds);
-void playMelodyTick(); // メロディを少しずつ再生する関数
+void playMelodyTick();
 void stopMelody();
 void clearTimer();
 void updateDisplay();
-void drawBackground(); // 背景描画用の関数
+void drawBackground();
+void drawQrCode();
 
 void setup() {
     M5.begin();
@@ -175,6 +177,33 @@ void clearTimer() {
     updateDisplay(); // 画面更新
 }
 
+// utiltimer.local の QR コードを右下に 1px/module で描画
+// Version 1 (21x21 modules) + quiet zone 4 = 29x29px
+void drawQrCode() {
+    static bool initialized = false;
+    static QRCode qrcode;
+    static uint8_t qrcodeData[57]; // version 1 buffer size
+
+    if (!initialized) {
+        qrcode_initText(&qrcode, qrcodeData, 1, ECC_LOW, "HTTP://UTILTIMER.LOCAL");
+        initialized = true;
+    }
+
+    const int QUIET = 4;
+    const int SIZE = qrcode.size + QUIET * 2; // 29
+    int x0 = M5.Lcd.width() - SIZE;
+    int y0 = M5.Lcd.height() - SIZE;
+
+    M5.Lcd.fillRect(x0, y0, SIZE, SIZE, WHITE);
+    for (int y = 0; y < qrcode.size; y++) {
+        for (int x = 0; x < qrcode.size; x++) {
+            if (qrcode_getModule(&qrcode, x, y)) {
+                M5.Lcd.drawPixel(x0 + QUIET + x, y0 + QUIET + y, BLACK);
+            }
+        }
+    }
+}
+
 // 背景画像を描画する関数
 void drawBackground() {
     M5.Lcd.fillScreen(BLACK);
@@ -201,10 +230,7 @@ void updateDisplay() {
                 M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
             }
             if (wifiIsConnected()) {
-                M5.Lcd.setTextSize(1);
-                M5.Lcd.setTextFont(2);
-                M5.Lcd.setTextColor(WHITE);
-                M5.Lcd.drawString("utiltimer.local", M5.Lcd.width() / 2, M5.Lcd.height() - 8);
+                drawQrCode();
             }
             break;
         case COUNTING:

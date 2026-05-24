@@ -6,12 +6,13 @@ static WebServer server(80);
 
 static String buildHtml() {
     String html = "<!DOCTYPE html><html><head><meta charset='utf-8'>"
+                  "<meta name='viewport' content='width=device-width,initial-scale=1'>"
                   "<title>UtilityTimer 設定</title>"
-                  "<style>body{font-family:sans-serif;max-width:480px;margin:20px auto;padding:0 12px}"
+                  "<style>body{font-family:sans-serif;margin:0;padding:12px;box-sizing:border-box}"
                   "h2{margin-bottom:8px}fieldset{margin-bottom:12px;padding:8px}"
                   "label{display:inline-block;margin:2px 6px}"
                   "input[type=text]{width:100%;box-sizing:border-box}"
-                  "button{padding:8px 24px;font-size:1em}"
+                  "button{padding:8px 24px;font-size:1em;width:100%}"
                   "</style></head><body>"
                   "<h2>UtilityTimer 設定</h2>"
                   "<form method='POST' action='/api/settings'>";
