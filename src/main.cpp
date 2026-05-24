@@ -230,6 +230,10 @@ void updateDisplay() {
                 M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
             }
             if (wifiIsConnected()) {
+                M5.Lcd.setTextSize(1);
+                M5.Lcd.setTextFont(2);
+                M5.Lcd.setTextColor(WHITE);
+                M5.Lcd.drawString("utiltimer.local", M5.Lcd.width() / 2, M5.Lcd.height() - 8);
                 drawQrCode();
             }
             break;
