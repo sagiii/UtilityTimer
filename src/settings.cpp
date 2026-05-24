@@ -14,7 +14,6 @@ void settingsLoad() {
     settings.subTopic  = prefs.getString("subTopic",  "mob");
     settings.showReady = prefs.getBool("showReady",   true);
     settings.proxyUrl  = prefs.getString("proxyUrl",  "");
-    settings.fetchDate = prefs.getString("fetchDate", "");
     prefs.end();
 }
 
@@ -27,7 +26,6 @@ void settingsSave() {
     prefs.putString("subTopic",  settings.subTopic);
     prefs.putBool("showReady",   settings.showReady);
     prefs.putString("proxyUrl",  settings.proxyUrl);
-    prefs.putString("fetchDate", settings.fetchDate);
     prefs.end();
 }
 

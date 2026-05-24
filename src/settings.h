@@ -16,7 +16,6 @@ struct AppSettings {
     String    subTopic;
     bool      showReady;
     String    proxyUrl;
-    String    fetchDate;
 };
 
 extern AppSettings settings;
