@@ -3,6 +3,12 @@
 #include "image.h"
 #define USE_BACKGROUND_IMAGE
 
+#include "settings.h"
+#include "wifi_conn.h"
+#include "ota_updater.h"
+#include "web_ui.h"
+#include "image_fetcher.h"
+
 // タイマーの状態
 enum TimerState {
     IDLE,       // 待機中
@@ -50,11 +56,18 @@ void setup() {
     M5.begin();
     M5.Lcd.setRotation(1); // 画面を横向きに設定 (TypeCコネクタが右の場合)
     M5.Lcd.setTextDatum(MC_DATUM); // 中央揃え
+    settingsLoad();
+    wifiSetup();
+    otaSetup();
+    webUiSetup();
+    imageFetcherSetup();
     clearTimer(); // 初期表示
 }
 
 void loop() {
     M5.update(); // ボタンの状態を更新
+    otaHandle();
+    webUiHandle();
 
     bool isPowerButtonPressed = M5.Axp.GetBtnPress() == 0x02;
     bool isButtonAPressed = M5.BtnA.wasPressed();
@@ -63,12 +76,10 @@ void loop() {
     if (isPowerButtonPressed || isButtonAPressed) {
         if (currentState == IDLE) {
             if (isPowerButtonPressed) {
-                // 10秒からカウントダウン開始
-                totalSeconds = 10;
+                totalSeconds = getPwrSeconds();
             }
             if (isButtonAPressed) {
-                // 60分 (3600秒) からカウントダウン開始
-                totalSeconds = 60 * 60;
+                totalSeconds = getBtnASeconds();
             }
             remainingSeconds = totalSeconds;
             currentState = COUNTING;
@@ -168,6 +179,10 @@ void clearTimer() {
 void drawBackground() {
     M5.Lcd.fillScreen(BLACK);
 #ifdef USE_BACKGROUND_IMAGE
+    if (settings.imgSource == IMG_WEB_FETCH) {
+        drawFetchedBackground();
+        return;
+    }
     M5.Lcd.startWrite();
     M5.Lcd.pushImage(0, 0, imgWidth, imgHeight, img);
     M5.Lcd.endWrite();
@@ -179,10 +194,18 @@ void updateDisplay() {
     switch (currentState) {
         case IDLE:
             drawBackground();
-            M5.Lcd.setTextSize(2);
-            M5.Lcd.setTextFont(TEXT_FONT_ID); // テキスト用フォントを設定
-            M5.Lcd.setTextColor(GREEN);//, BLACK);
-            M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
+            if (settings.showReady) {
+                M5.Lcd.setTextSize(2);
+                M5.Lcd.setTextFont(TEXT_FONT_ID);
+                M5.Lcd.setTextColor(GREEN);
+                M5.Lcd.drawString("READY", M5.Lcd.width() / 2, M5.Lcd.height() / 2);
+            }
+            if (wifiIsConnected()) {
+                M5.Lcd.setTextSize(1);
+                M5.Lcd.setTextFont(2);
+                M5.Lcd.setTextColor(WHITE);
+                M5.Lcd.drawString("utiltimer.local", M5.Lcd.width() / 2, M5.Lcd.height() - 8);
+            }
             break;
         case COUNTING:
         case PAUSED:
