@@ -17,8 +17,7 @@ pio run
 pio run --target upload
 
 # OTA 書き込み（WiFi 接続済みの場合）
-# platformio.ini に upload_protocol = espota / upload_port = utiltimer.local を設定してから
-pio run --target upload
+pio run -e m5stick-c-ota --target upload
 
 # シリアルモニタ
 pio device monitor
